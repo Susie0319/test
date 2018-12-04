@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<config version="v1.0.0">
+    <basic_data>
+        <!-- feature_index file -->
+        <file type="xml" name="\\100.104.208.228\wangyuanfa_ext\SharedDoc/MT6762/feature_index.xml" parser="ParserFeatureIndex" >
+            <tag tag="./" attrib="FEATUREINDEX,FEATURENAME,NVID,FIELD" />
+        </file>
+        <!-- siminfo_mapping file -->
+        <file type="xml" name="\\100.104.208.228\wangyuanfa_ext\SharedDoc/MT6762/simInfo_mapping.xml" parser="ParserSiminfo" >
+            <tag tag=".//*[@key='mcc_mnc']/.." attrib="mcc_mnc,operator_key,operator_name" />
+        </file>
+        <!-- sbp_id file, sbp_id的解析过程需在simInfo解析过程之后 -->
+        <file type="c" name="\\100.104.208.228\wangyuanfa_ext\SharedDoc/MT6762/l4bsbp_utility.c" parser="ParseSbpId" out_type="mcf_carrier">
+            <function partten="static\s+const\sl4bsbp_plmn_entry\s+g_l4bsbp_plmn_table\[\].+" start_tag="{" end_tag="}" />
+        </file>
+        <!-- area_id file -->
+        <file type="c" name="\\100.104.208.228\wangyuanfa_ext\SharedDoc/Dura/custom_nvram_extra.c" parser="ParseAreaId" out_type="mcf_def" >
+            <function partten="T_VENDOR_COUNTRY\s+g_vendor_country_hw\[\].+" start_tag="{" end_tag="}" />
+        </file>
+    </basic_data>
+    
+    <feature_files><!-- features from files -->
+        <!-- area features -->
+        <file type="c" name="\\100.104.208.228\wangyuanfa_ext\SharedDoc/Dura/sbp_nvram_config.c" parser="ParseAreaFeature" out_type="mcf_def" out_dir="result/dura">
+            <function partten="kal_bool\s+nvram_custom_config_sbp\(sbp_reconfig_custom_param_struct\s+\*param_ptr\)" start_tag="{" end_tag="}">
+                <block partten="case\s+(\d+)" start_tag=":" end_tag="break" >
+                    <!--nvram_custom_config_tdd_SpecialSubframe_r11-->
+                    <!--nvram_custom_config_DT_protocol_customization-->
+                    <feature partten="sbp_set_md_feature\(([\w\d_]+),\s*([\w\d_-]+),\s*.+\);" />
+                    <feature partten="sbp_set_md_feature_data\(([\w\d_]+),\s*([\w\d_-]+),\s*.+\);" />
+                </block>
+            </function>
+        </file>
+        <!-- sbp_modem & sbp_modem_config for Dura -->
+        <file type="c" name="\\100.104.208.228\wangyuanfa_ext\SharedDoc/Dura/sbp_nvram_config.c" parser="ParseSbpFeature" out_type="mcf_carrier" out_dir="result/dura">
+            <function partten="kal_bool\s+nvram_custom_config_sbp\(sbp_reconfig_custom_param_struct\s+\*param_ptr\)" start_tag="{" end_tag="}">
+                <block partten=".+if\s*\(sbp_id\s*==\s*(\d+)\s*(\|\|\s*sbp_id\s*==\s*(\d+))*\)" start_tag="{" end_tag="}">
+                    <!--mcc_indicator partten="" /-->
+                    <macro_indicator partten="#ifdef ([\w\d_]+)" >
+                        <macro name="MTK_DEV_SLT" value="0" />
+                        <macro name="__LTE_RAT__" value="1" />
+                        <macro name="__A54_ALGORITHM_SUPPORT__" value="1" />
+                        <macro name="__VOLTE_SUPPORT__" value="1" />
+                    </macro_indicator>
+                    <feature partten="sbp_set_md_feature\(([\w\d_]+),\s*([\w\d_-]+),\s*.+\);" />
+                    <feature partten="sbp_set_md_feature_data\(([\w\d_]+),\s*([\w\d_-]+),\s*.+\);" />
+                </block>
+            </function>
+        </file>
+        <!-- sbp_modem & sbp_modem_config -->
+        <file type="c" name="\\100.104.208.228\wangyuanfa_ext\SharedDoc/MT6762/sbp_nvram_config.c" parser="ParseSbpFeature" out_type="mcf_carrier" out_dir="result/mt6762">
+            <function partten="kal_bool\s+nvram_custom_config_sbp\(sbp_reconfig_custom_param_struct\s+\*param_ptr\)" start_tag="{" end_tag="}">
+                <block partten=".+if\s*\(sbp_id\s*==\s*(\d+)\s*(\|\|\s*sbp_id\s*==\s*(\d+))*\)" start_tag="{" end_tag="}">
+                    <!--mcc_indicator partten="" /-->
+                    <macro_indicator partten="#ifdef ([\w\d_]+)" >
+                        <macro name="MTK_DEV_SLT" value="0" />
+                        <macro name="__LTE_RAT__" value="1" />
+                        <macro name="__A54_ALGORITHM_SUPPORT__" value="1" />
+                        <macro name="__VOLTE_SUPPORT__" value="1" />
+                    </macro_indicator>
+                    <feature partten="sbp_set_md_feature\(([\w\d_]+),\s*([\w\d_-]+),\s*.+\);" />
+                    <feature partten="sbp_set_md_feature_data\(([\w\d_]+),\s*([\w\d_-]+),\s*.+\);" />
+                </block>
+            </function>
+        </file>
+        <!-- imc config -->
+        <file type="c" name="\\100.104.208.228\wangyuanfa_ext\SharedDoc/MT6762/custom_imc_config.c" parser="ParseImcFeature" out_type="mcf_carrier" out_dir="result/mt6762">
+            <function partten="nvram_ef_ims_profile_record_struct\*\s*imc_nvram_customization\([\w\d,\* ]+\)" start_tag="{" end_tag="}">
+                <block partten="case\s+(\d+)" start_tag=":" end_tag="break" >
+                    <mcc_indicator partten=".+if\s*\(strncmp\(\(char\s*\*\)\&amp;mccmnc\[0\], .(\d+).\s*, 3\)\s*==\s*0\)" start_tag="{" end_tag="}"/>
+                    <macro_indicator partten="#ifdef ([\w\d_]+)" end_tag="#endif">
+                        <macro name="__EVS_SUPPORT__" value="1" />
+                        <macro name="__EVS_MAX_BW_SWB__" value="1" />
+                    </macro_indicator>
+                    <!--set_conf_factory_uri_by_imsi-->
+                    <feature partten=".*strncpy\s*\(\s*\(char\s*\*\)nvram_ims_profile_ptr->([\w\d_\.]+)\s*, *\n *(.+), *" />
+                    <feature partten="[ \t]*nvram_ims_profile_ptr->([\w\d_\.]+)\s*=\s*([\w\d+->\.\*\+ ]+)\s*;.*" />
+                </block>
+            </function>
+        </file>
+        <!-- wo config -->
+        <file type="c" name="\\100.104.208.228\wangyuanfa_ext\SharedDoc/MT6762/custom_wo_config.c" parser="ParseWoFeature" out_type="mcf_carrier" out_dir="result/mt6762">
+            <function partten="kal_bool custom_wo_cfg_get\([\w\d,\* ]+" start_tag="{" end_tag="}">
+                <block partten="case\s+(\d+)" start_tag=":" end_tag="break" >
+                    <mcc_indicator partten=".+if\s*\(streq\(mcc,\s*.(\d+).\s*\)\)" start_tag="{" end_tag="}"/>
+                    <!--macro_indicator partten="#ifdef ([\w\d_]+)" >
+                        <macro name="MTK_DEV_SLT" value="0" />
+                        <macro name="__LTE_RAT__" value="1" />
+                        <macro name="__A54_ALGORITHM_SUPPORT__" value="1" />
+                        <macro name="__VOLTE_SUPPORT__" value="1" />
+                    </macro_indicator-->
+                    <feature partten="[ \t]*kal_snprintf\(\(kal_char\s*\*\)p_cfg->([\w\d_]+)\s*,\s*sizeof\(p_cfg->\1\)\s*,\s*.%s.\s*,\s*\n\s*.[\w\d\+=!',_\.-]+.\s*\);" />
+                    <feature partten="[ \t]*p_cfg->([\w\d_]+)\s*=\s*([\w\d+->\.]+)\s*;" />
+                </block>
+            </function>
+        </file>
+    </feature_files>
+    <extra_rules>
+    </extra_rules>
+</config>
